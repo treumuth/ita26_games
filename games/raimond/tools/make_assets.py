@@ -9,6 +9,7 @@ import os, math, random
 from PIL import Image, ImageDraw, ImageFilter
 import numpy as np
 
+LEG = 3
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPR = os.path.join(ROOT, 'assets', 'sprites'); ORIG = os.path.join(ROOT, 'assets', 'sprites_original'); POR = os.path.join(ROOT, 'assets', 'portraits')
 
@@ -41,7 +42,7 @@ def shift(im, dx, dy):
 
 def walk_sheet(idle, direction):
     """idle -> 4-frame strip [idle, step A, passing, step B]; keeps the feet baseline fixed."""
-    w, h = idle.size; a = np.array(idle); ys = np.where(a[:, :, 3] > 0)[0]; bottom = ys.max(); lb = bottom - 3   # leg band = last 4 rows
+    w, h = idle.size; a = np.array(idle); ys = np.where(a[:, :, 3] > 0)[0]; bottom = ys.max(); lb = bottom - LEG   # leg band rows
     def split(im):
         body = im.crop((0, 0, w, lb)); legs = im.crop((0, lb, w, h)); return body, legs
     def compose(body_dy, legs_fn):
@@ -108,6 +109,7 @@ NPC = {
  'lou':    dict(skin='#c8946a', hair='#2a1a12', style='spiky', top='#e0564a', trim='#fff', pants='#e0564a', shoe='#f0f0f0', acc=['visor', 'whistle'], bg='#d8b08a'),
  'coco':   dict(skin='#f4d2b4', hair='#f08fb8', style='bun', top='#8ad4f4', trim='#fff', pants='#fff', shoe='#f4b8d0', acc=['apron'], bg='#f0c8d8'),
  'dex':    dict(skin='#e0a878', hair='#f2d46a', style='messy', top='#2ab8a8', trim='#fff', pants='#f08a3a', shoe='#e8d8a8', acc=['shades'], bg='#a0d8d0'),
+ 'nova':   dict(skin='#f2d2b6', hair='#34466a', style='bun', top='#f4f6fa', trim='#d03a4a', pants='#c8d0e0', shoe='#e8ecf4', acc=['nursecap', 'mask', 'apron'], bg='#a8c4d8'),
  'chips':  dict(skin='#e8cca8', hair='#14141a', style='slick', top='#1c1c26', trim='#ff3ca0', pants='#14141a', shoe='#0e0e14', acc=['bowtie', 'shades', 'gold'], bg='#6a4a68'),
 }
 DIRS = ['down', 'left', 'right', 'up']
@@ -190,6 +192,8 @@ def npc_idle(sp, d):
             if st == 'long' and not back: cv.r(hx - 7, hy - 2, 2, 11, hair); cv.r(hx + 5, hy - 2, 2, 11, hair)
         if sp['style'] == 'bald' and not back: cv.r(hx - 7, hy - 1, 2, 4, hair); cv.r(hx + 6, hy - 1, 2, 4, hair)
     # --- accessories
+    if has('nursecap'): cv.r(hx - 4, hy - 8, 9, 3, hexc('#f4f6fa')); cv.r(hx - 1, hy - 8, 3, 3, hexc('#d03a4a')) if not back else None
+    if has('mask') and not back: cv.r(hx - 4, hy + 3, 9, 4, hexc('#dfe8f4'))
     if has('tophat'): cv.r(hx - 6, hy - 6, 13, 2, hexc('#26262c')); cv.r(hx - 4, hy - 12, 9, 7, hexc('#30303a')); cv.r(hx - 4, hy - 7, 9, 1, hexc('#c33'))
     if has('mustache') and not back: cv.r(hx - 3, hy + 4, 7, 1, hexc('#d6d6de')); cv.r(hx - 4, hy + 5, 2, 1, hexc('#d6d6de')); cv.r(hx + 3, hy + 5, 2, 1, hexc('#d6d6de'))
     if has('beard') and not back: cv.r(hx - 4, hy + 4, 9, 3, hexc('#b8b8b8')); cv.r(hx - 2, hy + 7, 5, 1, hexc('#b8b8b8'))
@@ -250,6 +254,12 @@ def portrait(id_, emo):
             d.polygon([(cx - 122, cy - 20), (cx - 90, cy - 20), (cx - 122, cy + 70)], fill=hair)
             d.polygon([(cx + 122, cy - 20), (cx + 90, cy - 20), (cx + 122, cy + 70)], fill=hair)
         if st == 'bald': d.arc((cx - 100, cy - 100, cx + 100, cy + 20), 200, 340, fill=(255, 255, 255, 90), width=8)
+    if has('dog'): d.ellipse((cx - 175, cy - 40, cx - 85, cy + 150), fill=tuple(int(v * .7) for v in skin), outline=ink, width=lw); d.ellipse((cx + 85, cy - 40, cx + 175, cy + 150), fill=tuple(int(v * .7) for v in skin), outline=ink, width=lw); d.ellipse((cx - 70, cy + 40, cx + 70, cy + 140), fill=(250, 232, 200), outline=ink, width=lw); d.ellipse((cx - 22, cy + 52, cx + 22, cy + 80), fill=(24, 20, 24))
+    if has('cat'):
+        d.polygon([(cx - 120, cy - 40), (cx - 100, cy - 175), (cx - 30, cy - 105)], fill=skin, outline=ink); d.polygon([(cx + 120, cy - 40), (cx + 100, cy - 175), (cx + 30, cy - 105)], fill=skin, outline=ink)
+        for sd in (-1, 1): [d.line((cx + sd * 40, cy + 70 + i * 14, cx + sd * 150, cy + 55 + i * 28), fill=ink, width=4) for i in range(3)]
+    if has('owl'): d.polygon([(cx - 110, cy - 90), (cx - 130, cy - 170), (cx - 40, cy - 110)], fill=skin, outline=ink); d.polygon([(cx + 110, cy - 90), (cx + 130, cy - 170), (cx + 40, cy - 110)], fill=skin, outline=ink); d.polygon([(cx - 20, cy + 50), (cx + 20, cy + 50), (cx, cy + 100)], fill=(232, 160, 32), outline=ink)
+    if has('turtle'): d.ellipse((cx - 190, cy + 100, cx + 190, cy + 330), fill=(58, 106, 42), outline=ink, width=lw); d.ellipse((cx - 150, cy + 120, cx + 150, cy + 320), fill=(106, 154, 58))
     # face parts
     ey = cy + 20; ex = 56
     def eye(side, kind):
@@ -301,6 +311,8 @@ def portrait(id_, emo):
     if has('cap'): d.pieslice((cx - 125, cy - 150, cx + 125, cy + 40), 180, 360, fill=top, outline=ink, width=lw); d.rectangle((cx - 140, cy - 24, cx + 40, cy - 6), fill=tuple(int(v * .75) for v in top), outline=ink, width=5)
     if has('strawhat'): d.ellipse((cx - 190, cy - 140, cx + 190, cy - 60), fill=(232, 200, 112), outline=ink, width=lw); d.pieslice((cx - 105, cy - 215, cx + 105, cy - 80), 180, 360, fill=(242, 217, 138), outline=ink, width=lw); d.rectangle((cx - 100, cy - 118, cx + 100, cy - 98), fill=(176, 58, 58))
     if has('visor'): d.pieslice((cx - 125, cy - 130, cx + 125, cy + 50), 180, 360, fill=(224, 86, 74), outline=ink, width=lw); d.ellipse((cx - 150, cy - 50, cx + 100, cy - 10), fill=(224, 86, 74), outline=ink, width=lw)
+    if has('nursecap'): d.pieslice((cx - 110, cy - 140, cx + 110, cy - 30), 180, 360, fill=(244, 246, 250), outline=ink, width=lw); d.rectangle((cx - 16, cy - 118, cx + 16, cy - 98), fill=(208, 58, 74))
+    if has('mask'): d.rectangle((cx - 78, my - 40, cx + 78, my + 40), fill=(223, 232, 244), outline=ink, width=lw)
     if has('helm'): d.pieslice((cx - 135, cy - 150, cx + 135, cy + 90), 180, 360, fill=(138, 144, 168), outline=ink, width=lw); d.rectangle((cx - 135, cy - 46, cx + 135, cy - 6), fill=(16, 16, 24), outline=ink, width=lw); d.rectangle((cx - 12, cy - 215, cx + 12, cy - 140), fill=(204, 51, 51), outline=ink, width=5)
     if has('dress') and False: pass
     im = im.crop((cx - 175, cy - 212, cx + 175, cy - 212 + 364)).resize((101, 105), Image.LANCZOS)
@@ -316,4 +328,4 @@ if __name__ == '__main__':
     for id_ in NPC:
         for d in DIRS: npc_sheet(id_, d).save(os.path.join(SPR, f'npc_{id_}_{d}.png'))
         for emo in ('neutral', 'happy', 'sad', 'angry', 'shock', 'worried', 'blush', 'dark'): portrait(id_, emo).save(os.path.join(POR, f'npc_{id_}_{emo}.png'))
-    print('done',SPR)
+    print('done')
