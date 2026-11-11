@@ -166,7 +166,7 @@ const sun=new THREE.DirectionalLight(0xff9f55,1.5);sun.castShadow=true;sun.shado
 const clouds=[];for(let i=0;i<14;i++){const g=new THREE.Group();for(let k=0;k<4;k++){const s=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),new THREE.MeshBasicMaterial({color:0xffd2a8,transparent:true,opacity:.9,fog:false}));s.scale.set(14+rnd()*12,5+rnd()*3,10+rnd()*6);s.position.set(k*14-20,rnd()*3,rnd()*8);g.add(s)}
  g.position.set((rnd()-.5)*1200,110+rnd()*40,(rnd()-.5)*1200);sc.add(g);clouds.push(g)}
 
-// ---------- Maailm ----------
+// ---------- Maailm ---------
 const obs=[],boxes=[];
 const tooClose=(x,z,d)=>obs.some(o=>Math.hypot(o[0]-x,o[1]-z)<o[2]+d)||boxes.some(b=>Math.hypot(b.x-x,b.z-z)<b.R+d);
 function pushOut(x,z,rad,y){
